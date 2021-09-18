@@ -1,2 +1,7 @@
-# go-conf
-A config lib for golang.
+# GO-CONF
+
+配置文件解析模块，类似Spring bool，带优先级，从指定或缺省的配置类别中进行配置项的解析。
+
+```
+
+```
