@@ -81,4 +81,23 @@ json文件中为:
 
 指定配置项根据优先级从高到底进行对应值的查找，找到对应值后，就设置为当前找到的值。
 
+> ⚠️注意！在golang中，处于代码安全考虑，任何变量都会有一个默认的空值，如int为0，string为"", interface{}为nil
+> 等，因此以上判断顺序的最后两个类型，如果程序代码中出现显式赋值，但却赋为类型对应的零值，如果定义时配置了缺省值，则依然会被设置为缺省值。
+
+举个例子：
+```
+type Cfg struct {
+    item string `default:"default value"`
+}
+
+func main() {
+    cfg := Cfg{
+        item: ""
+    }
+    conf.Load(&cfg)
+    println(cfg.item)
+}
+```
+此时根据配置加载顺序，cfg.item应该为 "", 但由于 ""为字符串类型的零值， 
+所以 cfg.item 被设置成了 tag 中的 "default value"
 

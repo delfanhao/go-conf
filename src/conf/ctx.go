@@ -190,34 +190,45 @@ func (ctx *configContext) parseStruct(prefix string, field *reflect.StructField,
 	}
 }
 
+func (ctx *configContext) setValueByType(field *reflect.StructField, value *reflect.Value, val interface{}) {
+	switch field.Type.Kind() {
+	case reflect.String:
+		value.SetString(val.(string))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if v := convToInt64(val); v != nil {
+			value.SetInt(*convToInt64(val))
+		}
+	case reflect.Bool:
+		i, err := strconv.ParseBool(val.(string))
+		if err == nil {
+			value.SetBool(i)
+		}
+	case reflect.Float32, reflect.Float64:
+		i, err := strconv.ParseFloat(val.(string), 64)
+		if err == nil {
+			value.SetFloat(i)
+		}
+	}
+
+}
+
 // setValue 根据类型设置配置文件中对应的值
 func (ctx *configContext) setValue(prefix string, field *reflect.StructField, value *reflect.Value) {
 	key := fmt.Sprintf("%s%s", prefix, field.Name)
 	for parseIdx := CmdLine; parseIdx < DefaultDefine; parseIdx++ {
 		filename := ctx.typeIndex[parseIdx]
 		if val, ok := ctx.parserFunc[parseIdx](filename, key); ok {
-			switch field.Type.Kind() {
-			case reflect.String:
-				value.SetString(val.(string))
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				if v := convToInt64(val); v != nil {
-					value.SetInt(*convToInt64(val))
-				}
-			case reflect.Bool:
-				i, err := strconv.ParseBool(val.(string))
-				if err == nil {
-					value.SetBool(i)
-				}
-			case reflect.Float32, reflect.Float64:
-				i, err := strconv.ParseFloat(val.(string), 64)
-				if err == nil {
-					value.SetFloat(i)
-				}
-			}
-
+			ctx.setValueByType(field, value, val)
 			return
 		}
 	}
+	// 如果外部配置位置均无法找到可以设置的值，并且程序中也未设置值，则需要获取定义的缺省值
+	if value.IsZero() {
+		if v, ok := field.Tag.Lookup("default"); ok {
+			ctx.setValueByType(field, value, v)
+		}
+	}
+
 }
 
 func (ctx *configContext) parseArray(prefix string, field *reflect.StructField, value *reflect.Value) {
