@@ -15,6 +15,8 @@ func (ctx *configContext) getCmdVal(_, key string) (interface{}, bool) {
 			result, ok = flag[len(key)+2:], true
 		}
 	}
-	//debug("get from cmdline [%s], val=[%s], state=[%v]", key, result, ok)
+	if ok {
+		trace("CMD - found: %s = %v", key, result)
+	}
 	return result, ok
 }

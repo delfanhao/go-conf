@@ -19,7 +19,7 @@ func (ctx *iniContext) scan(filename string) {
 	}
 	iniFile, err := ioutil.ReadFile(fullName)
 	if err != nil {
-		ctx.data[filename] = nil
+		ctx.data = nil
 		return
 	}
 
@@ -42,32 +42,20 @@ func (ctx *iniContext) scan(filename string) {
 }
 
 func (ctx *iniContext) getVal(key string) (interface{}, bool) {
-	key = strings.ToLower(key)
 	v, ok := ctx.data[key]
 	return v, ok
 }
 
-func (ctx *configContext) _getIniVal(filename, key string) (interface{}, bool) {
+func (ctx *configContext) getIniValFromFile(filename, key string) (interface{}, bool) {
 	iniCtx := ctx.fileMapping[filename]
 	if iniCtx == nil {
 		return nil, false
 	}
+	key = strings.ToLower(key)
+	result, ok := iniCtx.(*iniContext).getVal(key)
+	if ok {
+		trace("Ini(%s) - found: %s = %v", filename, key, result)
+	}
 
-	return iniCtx.(*iniContext).getVal(key)
-}
-
-func (ctx *configContext) getConfDefaultIniVal(filename, key string) (interface{}, bool) {
-	return ctx._getIniVal(filename, key)
-}
-
-func (ctx *configContext) getConfIniVal(filename, key string) (interface{}, bool) {
-	return ctx._getIniVal(filename, key)
-}
-
-func (ctx *configContext) getDefaultIniVal(filename, key string) (interface{}, bool) {
-	return ctx._getIniVal(filename, key)
-}
-
-func (ctx *configContext) getIniVal(filename, key string) (interface{}, bool) {
-	return ctx._getIniVal(filename, key)
+	return result, ok
 }

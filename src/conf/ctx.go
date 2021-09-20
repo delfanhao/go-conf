@@ -6,16 +6,10 @@ import (
 	"strconv"
 )
 
-/*
-   ctx.go
-   - 定义设置配置项过程中的上下文
-   - 定义解析过程中使用到的功能函数
-*/
-
-// 字段类型处理函数映射, 参数为： 文件名/key/字段反射/值反射
+// funcMapping 字段类型处理函数映射, 参数为： key/字段反射/值反射
 type funcMapping map[reflect.Kind]func(string, *reflect.StructField, *reflect.Value)
 
-// 获取值属性函数映射, 参数： 文件名/key
+// getterMapping 获取值属性函数的映射, 参数：
 type getterMapping map[int]func(string, string) (interface{}, bool)
 
 // configContext 配置过程中的上下文
@@ -75,36 +69,11 @@ func Load(confStruct interface{}) {
 func (ctx *configContext) setFileState(index int, filename, fileType string) {
 	ctx.typeIndex[index] = filename
 	ctx.fileMapping[filename] = ctx.prepareFile(filename, fileType)
-
-}
-
-// prepareFile 根据文件类型，获取对应类型的上下文以及预加载的数据
-func (ctx *configContext) prepareFile(filename, fileType string) interface{} {
-	switch fileType {
-	case "yml":
-		ymlCtx := &ymlContext{cfgCtx: ctx}
-		ymlCtx.scan(filename)
-		if ymlCtx.data == nil {
-			return nil
-		}
-		return ymlCtx
-	case "json":
-		jsonCtx := &jsonContext{cfgCtx: ctx}
-		jsonCtx.scan(filename)
-		if jsonCtx.data == nil {
-			return nil
-		}
-		return jsonCtx
-	case "ini":
-		iniCtx := &iniContext{cfgCtx: ctx}
-		iniCtx.scan(filename)
-		if iniCtx.data == nil {
-			return nil
-		}
-		return iniCtx
+	if ctx.fileMapping[filename] == nil {
+		trace("Prepare file [%s], but not found or parse error.", filename)
+	} else {
+		trace("Prepare file [%s], found and parse ok.", filename)
 	}
-
-	return nil
 }
 
 // scanAllFile
@@ -139,21 +108,54 @@ func (ctx *configContext) initCallerMapping() {
 	ctx.parserFunc = make(getterMapping)
 	ctx.parserFunc[CmdLine] = ctx.getCmdVal
 	ctx.parserFunc[Env] = ctx.getEnvVal
-	ctx.parserFunc[ConfDefaultYml] = ctx.getConfDefaultYmlVal
-	ctx.parserFunc[ConfDefaultJson] = ctx.getConfDefaultJsonVal
-	ctx.parserFunc[ConfDefaultIni] = ctx.getConfDefaultIniVal
-	ctx.parserFunc[ConfAppYml] = ctx.getConfYmlVal
-	ctx.parserFunc[ConfAppJson] = ctx.getConfJsonVal
-	ctx.parserFunc[ConfAppIni] = ctx.getConfIniVal
-	ctx.parserFunc[DefaultYml] = ctx.getDefaultYmlVal
-	ctx.parserFunc[DefaultJson] = ctx.getDefaultJsonVal
-	ctx.parserFunc[DefaultIni] = ctx.getDefaultIniVal
-	ctx.parserFunc[AppYml] = ctx.getYmlVal
-	ctx.parserFunc[AppJson] = ctx.getJsonVal
-	ctx.parserFunc[AppIni] = ctx.getIniVal
+	ctx.parserFunc[ConfDefaultYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[ConfDefaultJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[ConfDefaultIni] = ctx.getIniValFromFile
+	ctx.parserFunc[ConfAppYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[ConfAppJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[ConfAppIni] = ctx.getIniValFromFile
+	ctx.parserFunc[DefaultYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[DefaultJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[DefaultIni] = ctx.getIniValFromFile
+	ctx.parserFunc[AppYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[AppJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[AppIni] = ctx.getIniValFromFile
 	ctx.parserFunc[DefaultDefine] = ctx.getTagDefault
 
 	ctx.fileMapping = make(map[string]interface{})
+}
+
+// prepareFile 根据文件类型，获取对应类型的上下文以及预加载的数据
+func (ctx *configContext) prepareFile(filename, fileType string) interface{} {
+
+	switch fileType {
+	case "yml":
+		ymlCtx := &ymlContext{cfgCtx: ctx}
+		ymlCtx.scan(filename)
+		if ymlCtx.data == nil {
+			ctx.fileMapping[filename] = nil
+			return nil
+		}
+		return ymlCtx
+	case "json":
+		jsonCtx := &jsonContext{cfgCtx: ctx}
+		jsonCtx.scan(filename)
+		if jsonCtx.data == nil {
+			ctx.fileMapping[filename] = nil
+			return nil
+		}
+		return jsonCtx
+	case "ini":
+		iniCtx := &iniContext{cfgCtx: ctx}
+		iniCtx.scan(filename)
+		if iniCtx.data == nil {
+			ctx.fileMapping[filename] = nil
+			return nil
+		}
+		return iniCtx
+	}
+
+	return nil
 }
 
 // getTagDefault
@@ -198,9 +200,8 @@ func (ctx *configContext) setValue(prefix string, field *reflect.StructField, va
 			case reflect.String:
 				value.SetString(val.(string))
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				i, err := strconv.ParseInt(val.(string), 10, 64)
-				if err == nil {
-					value.SetInt(i)
+				if v := convToInt64(val); v != nil {
+					value.SetInt(*convToInt64(val))
 				}
 			case reflect.Bool:
 				i, err := strconv.ParseBool(val.(string))

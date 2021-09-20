@@ -9,5 +9,9 @@ func (ctx *configContext) getEnvVal(_, key string) (interface{}, bool) {
 	realKey := getFormatKey(key)
 	result := os.Getenv(realKey)
 	ok := len(result) > 0
+
+	if ok {
+		trace("ENV - found: %s = %v", key, result)
+	}
 	return result, ok
 }

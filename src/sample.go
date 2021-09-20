@@ -4,7 +4,7 @@ import (
 	"go-conf/src/conf"
 )
 
-type Config struct {
+type SampleConfig struct {
 	Ftp struct {
 		Host string `default:"0.0.0.0"`
 		Port int
@@ -23,14 +23,15 @@ type Config struct {
 }
 
 func main() {
-	cfg := Config{
+	conf.TRACE = true
+	cfg := SampleConfig{
 		Root: "aaa",
 	}
 	conf.Load(&cfg)
 	show(&cfg)
 }
 
-func show(cfg *Config) {
+func show(cfg *SampleConfig) {
 	println("- START -")
 	println("ftp.host = ", cfg.Ftp.Host)
 	println("ftp.port = ", cfg.Ftp.Port)

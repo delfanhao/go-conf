@@ -5,6 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"reflect"
+	"strings"
 )
 
 type ymlContext struct {
@@ -12,6 +13,7 @@ type ymlContext struct {
 	data   map[string]interface{}
 }
 
+// scan 扫描yaml文件
 func (ctx *ymlContext) scan(filename string) {
 	fullName := fmt.Sprintf("%s/%s", ctx.cfgCtx.workDir, filename)
 	if ctx.data == nil {
@@ -19,7 +21,7 @@ func (ctx *ymlContext) scan(filename string) {
 	}
 	ymlFile, err := ioutil.ReadFile(fullName)
 	if err != nil {
-		ctx.data[filename] = nil
+		ctx.data = nil
 		return
 	}
 
@@ -35,6 +37,7 @@ func (ctx *ymlContext) scan(filename string) {
 	ctx.data = valueMap
 }
 
+// parse
 func (ctx *ymlContext) parse(data map[interface{}]interface{}, valueMap map[string]interface{}, prefix string) {
 	for k, v := range data {
 		defType := reflect.TypeOf(v).Kind()
@@ -49,33 +52,21 @@ func (ctx *ymlContext) parse(data map[interface{}]interface{}, valueMap map[stri
 
 // getVal 获取指定key的值
 func (ctx *ymlContext) getVal(key string) (interface{}, bool) {
-
 	v, ok := ctx.data[key]
 	return v, ok
 }
 
-func (ctx *configContext) _getYmlVal(filename, key string) (interface{}, bool) {
+func (ctx *configContext) getYmlValFromFile(filename, key string) (interface{}, bool) {
 	ymlCtx := ctx.fileMapping[filename]
 	if ymlCtx == nil {
 		return nil, false
 	}
+	realKey := strings.ToLower(key)
+	result, ok := ymlCtx.(*ymlContext).getVal(realKey)
 
-	return ymlCtx.(*ymlContext).getVal(key)
-}
+	if ok {
+		trace("YML(%s) - found: %v = %v", filename, realKey, result)
+	}
 
-//
-func (ctx *configContext) getConfDefaultYmlVal(filename, key string) (interface{}, bool) {
-	return ctx._getYmlVal(filename, key)
-}
-
-func (ctx *configContext) getConfYmlVal(filename, key string) (interface{}, bool) {
-	return ctx._getYmlVal(filename, key)
-}
-
-func (ctx *configContext) getDefaultYmlVal(filename, key string) (interface{}, bool) {
-	return ctx._getYmlVal(filename, key)
-}
-
-func (ctx *configContext) getYmlVal(filename, key string) (interface{}, bool) {
-	return ctx._getYmlVal(filename, key)
+	return result, ok
 }

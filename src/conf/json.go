@@ -22,7 +22,7 @@ func (ctx *jsonContext) scan(filename string) {
 	}
 	jsonFile, err := ioutil.ReadFile(fullName)
 	if err != nil {
-		ctx.data[filename] = nil
+		ctx.data = nil
 		return
 	}
 
@@ -31,6 +31,8 @@ func (ctx *jsonContext) scan(filename string) {
 	err = json.Unmarshal(jsonFile, &data)
 	if err != nil {
 		println(err.Error())
+		ctx.data = nil
+		return
 	}
 
 	valueMap := make(map[string]interface{})
@@ -57,37 +59,20 @@ func (ctx *jsonContext) parse(data map[string]interface{}, valueMap map[string]i
 
 // getVal 获取指定key的值
 func (ctx *jsonContext) getVal(key string) (interface{}, bool) {
-	key = strings.ToLower(key)
 	v, ok := ctx.data[key]
 	return v, ok
 }
 
-// _getJsonVal
-func (ctx *configContext) _getJsonVal(filename, key string) (interface{}, bool) {
+// getJsonValFromFile
+func (ctx *configContext) getJsonValFromFile(filename, key string) (interface{}, bool) {
 	jsonCtx := ctx.fileMapping[filename]
 	if jsonCtx == nil {
 		return nil, false
 	}
-
-	return jsonCtx.(*jsonContext).getVal(key)
-}
-
-// getConfDefaultJsonVal
-func (ctx *configContext) getConfDefaultJsonVal(filename, key string) (interface{}, bool) {
-	return ctx._getJsonVal(filename, key)
-}
-
-// getConfJsonVal
-func (ctx *configContext) getConfJsonVal(filename, key string) (interface{}, bool) {
-	return ctx._getJsonVal(filename, key)
-}
-
-// getDefaultJsonVal
-func (ctx *configContext) getDefaultJsonVal(filename, key string) (interface{}, bool) {
-	return ctx._getJsonVal(filename, key)
-}
-
-// getJsonVal
-func (ctx *configContext) getJsonVal(filename, key string) (interface{}, bool) {
-	return ctx._getJsonVal(filename, key)
+	realKey := strings.ToLower(key)
+	result, ok := jsonCtx.(*jsonContext).getVal(realKey)
+	if ok {
+		trace("Json(%s) - found: %s = %v", filename, realKey, result)
+	}
+	return result, ok
 }
