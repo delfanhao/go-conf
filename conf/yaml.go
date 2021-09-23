@@ -44,7 +44,11 @@ func (ctx *ymlContext) parse(data map[interface{}]interface{}, valueMap map[stri
 		if defType == reflect.Map {
 			ctx.parse(v.(map[interface{}]interface{}), valueMap, k.(string))
 		} else {
-			dataKey := fmt.Sprintf("%s.%s", prefix, k)
+			splitter := "."
+			if len(prefix) == 0 {
+				splitter = ""
+			}
+			dataKey := fmt.Sprintf("%s%s%s", prefix, splitter, k)
 			valueMap[dataKey] = v
 		}
 	}
