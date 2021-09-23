@@ -1,4 +1,4 @@
-module go-conf
+module conf
 
 go 1.17
 
