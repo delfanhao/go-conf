@@ -1,7 +1,7 @@
 package main
 
 import (
-	conf2 "go-conf/conf"
+	conf2 "github.com/delfanhao/go-conf/conf"
 )
 
 type DevConfig struct {

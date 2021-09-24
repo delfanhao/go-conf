@@ -1,0 +1,6 @@
+fromyml:
+  item1: from yml item1
+  item2: from yml item1
+  subitem:
+    item1: form yml subitem item1
+    item2: form yml subitem item1
