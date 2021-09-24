@@ -41,14 +41,13 @@ func (ctx *ymlContext) scan(filename string) {
 func (ctx *ymlContext) parse(data map[interface{}]interface{}, valueMap map[string]interface{}, prefix string) {
 	for k, v := range data {
 		defType := reflect.TypeOf(v).Kind()
+		dataKey := fmt.Sprintf("%s.%s", prefix, k)
+		if len(prefix) == 0 {
+			dataKey = dataKey[1:]
+		}
 		if defType == reflect.Map {
-			ctx.parse(v.(map[interface{}]interface{}), valueMap, k.(string))
+			ctx.parse(v.(map[interface{}]interface{}), valueMap, dataKey)
 		} else {
-			splitter := "."
-			if len(prefix) == 0 {
-				splitter = ""
-			}
-			dataKey := fmt.Sprintf("%s%s%s", prefix, splitter, k)
 			valueMap[dataKey] = v
 		}
 	}

@@ -23,21 +23,21 @@ type configContext struct {
 }
 
 const (
-	CmdLine = iota
-	Env
-	CfgAppYml
-	CfgAppJson
-	CfgAppIni
-	AppYml
-	AppJson
-	AppIni
-	CfgDefaultYml
-	CfgDefaultJson
-	CfgDefaultIni
-	DefaultYml
-	DefaultJson
-	DefaultIni
-	DefaultDefine
+	cmdLine = iota
+	env
+	cfgAppYml
+	cfgAppJson
+	cfgAppIni
+	appYml
+	appJson
+	appIni
+	cfgDefaultYml
+	cfgDefaultJson
+	cfgDefaultIni
+	defaultYml
+	defaultJson
+	defaultIni
+	defaultDefine
 )
 
 // Load 加载配置项目，按照指定的加载顺序进行处理
@@ -48,8 +48,9 @@ func Load(confStruct interface{}) {
 		defValues: reflect.ValueOf(confStruct),
 		typeIndex: make(map[int]string),
 	}
-	if ctx.defTypes.Kind() != reflect.Ptr && ctx.defTypes.Kind() != reflect.Struct {
-		panic("Not struct type, Check your source code please.")
+	if confStruct == nil || ctx.defTypes.Kind() != reflect.Ptr && ctx.defTypes.Kind() != reflect.Struct {
+		println("Whoops! param is not a struct, check your code please.")
+		return
 	}
 
 	ctx.workDir, ctx.appName = getAppInfo()
@@ -75,38 +76,38 @@ func (ctx *configContext) setFileState(index int, filename, fileType string) {
 // scanAllFile 扫描所有允许出现配置文件的位置
 func (ctx *configContext) scanAllFile() {
 	ctx.fileMapping = make(map[string]interface{})
-	ctx.setFileState(CfgAppYml, "conf/"+ctx.appName+".yml", "yml")
-	ctx.setFileState(CfgAppJson, "conf/"+ctx.appName+"config.json", "json")
-	ctx.setFileState(CfgAppIni, "conf/"+ctx.appName+"config.ini", "ini")
-	ctx.setFileState(AppYml, ctx.appName+".yml", "yml")
-	ctx.setFileState(AppJson, ctx.appName+".json", "json")
-	ctx.setFileState(AppIni, ctx.appName+".ini", "ini")
-	ctx.setFileState(CfgDefaultYml, "conf/config.yml", "yml")
-	ctx.setFileState(CfgDefaultJson, "conf/config.json", "json")
-	ctx.setFileState(CfgDefaultIni, "conf/config.ini", "ini")
-	ctx.setFileState(DefaultYml, "config.yml", "yml")
-	ctx.setFileState(DefaultJson, "config.json", "json")
-	ctx.setFileState(DefaultIni, "config.ini", "ini")
+	ctx.setFileState(cfgAppYml, "conf/"+ctx.appName+".yml", "yml")
+	ctx.setFileState(cfgAppJson, "conf/"+ctx.appName+".json", "json")
+	ctx.setFileState(cfgAppIni, "conf/"+ctx.appName+".ini", "ini")
+	ctx.setFileState(appYml, ctx.appName+".yml", "yml")
+	ctx.setFileState(appJson, ctx.appName+".json", "json")
+	ctx.setFileState(appIni, ctx.appName+".ini", "ini")
+	ctx.setFileState(cfgDefaultYml, "conf/config.yml", "yml")
+	ctx.setFileState(cfgDefaultJson, "conf/config.json", "json")
+	ctx.setFileState(cfgDefaultIni, "conf/config.ini", "ini")
+	ctx.setFileState(defaultYml, "config.yml", "yml")
+	ctx.setFileState(defaultJson, "config.json", "json")
+	ctx.setFileState(defaultIni, "config.ini", "ini")
 }
 
 // initCallerMapping 设置每种类型的对应解析函数
 func (ctx *configContext) initCallerMapping() {
 	// 按照优先级进行解析函数的映射
 	ctx.parserFunc = make(getterMapping)
-	ctx.parserFunc[CmdLine] = ctx.getCmdVal
-	ctx.parserFunc[Env] = ctx.getEnvVal
-	ctx.parserFunc[CfgDefaultYml] = ctx.getYmlValFromFile
-	ctx.parserFunc[CfgDefaultJson] = ctx.getJsonValFromFile
-	ctx.parserFunc[CfgDefaultIni] = ctx.getIniValFromFile
-	ctx.parserFunc[CfgAppYml] = ctx.getYmlValFromFile
-	ctx.parserFunc[CfgAppJson] = ctx.getJsonValFromFile
-	ctx.parserFunc[CfgAppIni] = ctx.getIniValFromFile
-	ctx.parserFunc[DefaultYml] = ctx.getYmlValFromFile
-	ctx.parserFunc[DefaultJson] = ctx.getJsonValFromFile
-	ctx.parserFunc[DefaultIni] = ctx.getIniValFromFile
-	ctx.parserFunc[AppYml] = ctx.getYmlValFromFile
-	ctx.parserFunc[AppJson] = ctx.getJsonValFromFile
-	ctx.parserFunc[AppIni] = ctx.getIniValFromFile
+	ctx.parserFunc[cmdLine] = ctx.getCmdVal
+	ctx.parserFunc[env] = ctx.getEnvVal
+	ctx.parserFunc[cfgDefaultYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[cfgDefaultJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[cfgDefaultIni] = ctx.getIniValFromFile
+	ctx.parserFunc[cfgAppYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[cfgAppJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[cfgAppIni] = ctx.getIniValFromFile
+	ctx.parserFunc[defaultYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[defaultJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[defaultIni] = ctx.getIniValFromFile
+	ctx.parserFunc[appYml] = ctx.getYmlValFromFile
+	ctx.parserFunc[appJson] = ctx.getJsonValFromFile
+	ctx.parserFunc[appIni] = ctx.getIniValFromFile
 
 	ctx.fileMapping = make(map[string]interface{})
 }
@@ -206,7 +207,6 @@ func (ctx *configContext) setSliceValue(data []interface{}, value *reflect.Value
 	}
 	switch reflect.TypeOf(data[0]).Kind() {
 	case reflect.Int:
-		println(value.Kind().String())
 		arr := make([]int, 0)
 		for i := range data {
 			arr = append(arr, data[i].(int))
@@ -237,7 +237,7 @@ func (ctx *configContext) setSliceValue(data []interface{}, value *reflect.Value
 // setValue 根据类型设置配置文件中对应的值
 func (ctx *configContext) setValue(prefix string, field *reflect.StructField, value *reflect.Value) {
 	key := fmt.Sprintf("%s%s", prefix, field.Name)
-	for parseIdx := CmdLine; parseIdx < DefaultDefine; parseIdx++ {
+	for parseIdx := cmdLine; parseIdx < defaultDefine; parseIdx++ {
 		filename := ctx.typeIndex[parseIdx]
 		if val, ok := ctx.parserFunc[parseIdx](filename, key); ok {
 			ctx.setValueByType(field, value, val)

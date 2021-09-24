@@ -1,4 +1,4 @@
-module conf
+module github.com/delfanhao/go-conf
 
 go 1.17
 
