@@ -11,6 +11,10 @@ import (
 
 // getAppInfo 获取应用名称
 func getAppInfo() (string, string) {
+	name := filepath.Base(os.Args[0])
+	// for windows
+	name = strings.TrimRight(name, ".exe")
+	name = strings.TrimRight(name, ".com")
 	return filepath.Dir(os.Args[0]), filepath.Base(os.Args[0])
 }
 
