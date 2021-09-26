@@ -6,12 +6,12 @@
 ## 使用``go-conf``
 ``go mod github.com/delfanhao/go-conf/conf``
 
-代码如下：
+最简代码如下：
 ```
 package main
 
 import (
-	"go-conf/src/conf"
+	"github.com/delfanhao/go-conf/conf"
 )
 
 type Config {
@@ -24,7 +24,7 @@ func main(){
 	printlnf(cfg.Flag)
 }
 ```
-如果您想了解解析过程，可使用conf包中的一个全局布尔变量``TRACE``来跟踪解析过程，这个变量的默认值是关闭的。
+如果想了解解析过程，可使用conf包中的一个全局布尔变量``TRACE``来跟踪解析过程，这个变量的默认值是关闭(false)的。
 
 ## 配置项规则 
 1. 配置项定义
@@ -67,15 +67,15 @@ json文件中为:
 - conf/<可执行文件名>.yml  
 - conf/<可执行文件名>.json  
 - conf/<可执行文件名>.ini  
-- ./<可执行文件名>.yml  
-- ./<可执行文件名>.json  
-- ./<可执行文件名>.ini  
+- <可执行文件名>.yml  
+- <可执行文件名>.json  
+- <可执行文件名>.ini  
 - conf/config.yml  
 - conf/config.json  
 - conf/config.ini  
-- ./config.yml  
-- ./config.json  
-- ./config.yml  
+- config.yml  
+- config.json  
+- config.yml  
 - 配置项初始时指定值  
 - 配置项tag中定义的缺省值  
 
@@ -101,3 +101,12 @@ func main() {
 此时根据配置加载顺序，cfg.item应该为 "", 但由于 ""为字符串类型的零值， 
 所以 cfg.item 被设置成了 tag 中的 "default value"
 
+## 关于DEMO
+- simple  
+  最简单的配置演示  
+- slice  
+  带有配置项为切片的演示
+- struct  
+  多层struct演示
+- full  
+  从不同配置位置进行配置的演示
