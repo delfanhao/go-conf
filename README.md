@@ -4,7 +4,7 @@
 
 
 ## 使用``go-conf``
-``go mod github.com/delfanhao/go-conf/conf``
+``go get github.com/delfanhao/go-conf/conf``
 
 最简代码如下：
 ```
