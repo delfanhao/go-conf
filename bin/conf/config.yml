@@ -1,4 +1,0 @@
-ftp:
-  host: host from conf/config.yml
-  port: 32
-  user: aaaaaa

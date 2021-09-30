@@ -1,3 +1,0 @@
-ftp:
-  host: ./config.yml
-  port: 32
