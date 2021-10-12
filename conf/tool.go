@@ -37,7 +37,11 @@ func convToInt64(val interface{}) *int64 {
 	case int:
 		re := int64(val.(int))
 		return &re
+	case float32, float64:
+		re := int64(val.(float64))
+		return &re
 	}
+
 	return nil
 }
 

@@ -6,6 +6,7 @@ type StructConfig struct {
 	FromJson struct {
 		Item1   string
 		Item2   string
+		Port    int
 		SubItem struct {
 			Item1 string
 			Item2 string
@@ -29,6 +30,7 @@ func main() {
 	conf.Load(&cfg)
 
 	println("FromJson.Item1 = ", cfg.FromJson.Item1)
+	println("FromJson.Prot = ", cfg.FromJson.Port)
 	println("FromJson.SubItem.Item1 = ", cfg.FromJson.SubItem.Item1)
 	println("FromYml.Item1 = ", cfg.FromYml.Item1)
 	println("FromYml.SubItem.Item1 = ", cfg.FromYml.SubItem.Item1)

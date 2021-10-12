@@ -2,6 +2,7 @@
   "fromjson": {
     "item1": "form json item1",
     "item2": "form json item2",
+    "port": 21,
     "subitem": {
       "item1": "from json subitem item1",
       "item2": "from json subitem item2"
