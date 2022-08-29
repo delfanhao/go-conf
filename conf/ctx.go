@@ -196,41 +196,41 @@ func (ctx *configContext) setValueByType(field *reflect.StructField, value *refl
 			value.SetFloat(i)
 		}
 	case reflect.Slice:
-		slice := val.([]interface{})
-		ctx.setSliceValue(slice, value)
+		ctx.setSliceValue(val, field.Type, value)
 	}
 }
 
-func (ctx *configContext) setSliceValue(data []interface{}, value *reflect.Value) {
-	if len(data) == 0 {
-		return
-	}
-	switch reflect.TypeOf(data[0]).Kind() {
-	case reflect.Int:
-		arr := make([]int, 0)
-		for i := range data {
-			arr = append(arr, data[i].(int))
-		}
-		value.Set(reflect.ValueOf(arr))
-	case reflect.String:
+func (ctx *configContext) setSliceValue(data interface{}, fieldType reflect.Type, value *reflect.Value) {
+	typeName := reflect.SliceOf(fieldType).Elem().String()
+	switch typeName {
+	case "[]string":
 		arr := make([]string, 0)
-		for i := range data {
-			arr = append(arr, data[i].(string))
+		vArr := data.([]string)
+		for i := range vArr {
+			arr = append(arr, vArr[i])
 		}
 		value.Set(reflect.ValueOf(arr))
-	case reflect.Float32, reflect.Float64:
-		arr := make([]float64, 0)
-		for i := range data {
-			arr = append(arr, data[i].(float64))
-		}
+	case "[]int":
+		arr := arrStr2int(data.([]string))
 		value.Set(reflect.ValueOf(arr))
-	case reflect.Bool:
+	case "[]int32":
+		arr := arrStr2int32(data.([]string))
+		value.Set(reflect.ValueOf(arr))
+	case "[]int64":
+		arr := arrStr2int64(data.([]string))
+		value.Set(reflect.ValueOf(arr))
+	case "[]float32", "[]float64":
+		arr := arrStr2Float(data.([]string))
+		value.Set(reflect.ValueOf(arr))
+	case "[]bool":
 		arr := make([]bool, 0)
-		for i := range data {
-			arr = append(arr, data[i].(bool))
+		vArr := data.([]bool)
+		for i := range vArr {
+			arr = append(arr, vArr[i])
 		}
 		value.Set(reflect.ValueOf(arr))
-
+	default:
+		//slice = val.([]interface{})
 	}
 }
 

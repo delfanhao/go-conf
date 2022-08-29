@@ -18,7 +18,6 @@ func getAppInfo() (string, string) {
 	return filepath.Dir(os.Args[0]), filepath.Base(os.Args[0])
 }
 
-//
 func getFormatKey(key string) string {
 	newKey := strings.ToUpper(key)
 	return strings.ReplaceAll(newKey, ".", "_")
@@ -56,5 +55,59 @@ func trace(msg string, params ...interface{}) {
 	ts := t.Format("2006-01-02 15:04:05")
 	prefix := fmt.Sprintf("%s - [T] ", ts)
 	out := prefix + msg
-	println(fmt.Sprintf(out, params...))
+	fmt.Println(fmt.Sprintf(out, params...))
+}
+
+func arrStr2int(sArr []string) []int {
+	iArr := make([]int, len(sArr))
+	for idx, s := range sArr {
+		if i, e := strconv.Atoi(s); e == nil {
+			iArr[idx] = i
+		}
+	}
+
+	return iArr
+}
+func arrStr2int32(sArr []string) []int32 {
+	iArr := make([]int32, len(sArr))
+	for idx, s := range sArr {
+		if i, e := strconv.Atoi(s); e == nil {
+			iArr[idx] = int32(i)
+		}
+	}
+
+	return iArr
+}
+func arrStr2int64(sArr []string) []int64 {
+	iArr := make([]int64, len(sArr))
+	for idx, s := range sArr {
+		fmt.Printf("%d-[%s]\n", idx, s)
+		if i, e := strconv.Atoi(s); e == nil {
+			iArr[idx] = int64(i)
+		}
+	}
+
+	return iArr
+}
+
+func arrStr2Float(sArr []string) []float64 {
+	iArr := make([]float64, len(sArr))
+	for idx, s := range sArr {
+		if i, e := strconv.ParseFloat(s, 64); e == nil {
+			iArr[idx] = i
+		}
+	}
+
+	return iArr
+}
+
+func arrStr2Bool(sArr []string) []bool {
+	iArr := make([]bool, len(sArr))
+	for idx, s := range sArr {
+		if i, e := strconv.ParseBool(s); e == nil {
+			iArr[idx] = i
+		}
+	}
+
+	return iArr
 }
