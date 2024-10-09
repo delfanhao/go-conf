@@ -1,8 +1,9 @@
-package conf
+package go_conf
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -17,10 +18,16 @@ func (ctx *iniContext) scan(filename string) {
 	if ctx.data == nil {
 		ctx.data = make(map[string]interface{})
 	}
-	iniFile, err := ioutil.ReadFile(fullName)
-	if err != nil {
-		ctx.data = nil
+
+	var iniFile []byte
+	if fd, e := os.Open(fullName); e != nil {
 		return
+	} else {
+		defer fd.Close()
+		if iniFile, e = io.ReadAll(fd); e != nil {
+			ctx.data = nil
+			return
+		}
 	}
 
 	str := string(iniFile)
@@ -30,7 +37,7 @@ func (ctx *iniContext) scan(filename string) {
 	for idx := range lines {
 		line := strings.Trim(lines[idx], " ")
 		line = strings.Trim(line, "\r")
-		if len(line) > 0 {
+		if len(line) > 0 && !strings.HasPrefix(line, ";") {
 			pos := strings.Index(line, "=")
 			k := strings.Trim(line[:pos], " ")
 			v := strings.Trim(line[pos+1:], " ")

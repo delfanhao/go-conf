@@ -1,4 +1,4 @@
-package conf
+package go_conf
 
 import (
 	"encoding/json"
